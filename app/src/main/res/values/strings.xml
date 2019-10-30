@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Projet-Mobile</string>
+    <string name="about">A propos de nous</string>
+    <string name="communicate">Mobile Crew</string>
+    <string name="contact">Contactez nous</string>
+    <string name="itineraire">Trouver un itinéraire</string>
+    <string name="map">Carte de la ville</string>
 </resources>
