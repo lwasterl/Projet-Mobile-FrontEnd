@@ -1,8 +1,10 @@
 <resources>
-    <string name="app_name">Projet-Mobile</string>
+    <string name="app_name">SmartBike</string>
     <string name="about">A propos de nous</string>
     <string name="communicate">Mobile Crew</string>
     <string name="contact">Contactez nous</string>
     <string name="itineraire">Trouver un itinéraire</string>
     <string name="map">Carte de la ville</string>
+    <string name="navigation_drawer_open">Ouverture du navigateur</string>
+    <string name="navigation_drawer_close">Fermeture du navigateur</string>
 </resources>
