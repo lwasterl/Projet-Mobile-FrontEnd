@@ -1,70 +1,169 @@
 package com.example.projet_mobile;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-
+import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
+import android.content.Intent;
 import android.os.Bundle;
-import android.view.MenuItem;
+import android.os.Handler;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.EditText;
+import android.widget.Button;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Set;
+import java.util.UUID;
 
-import com.google.android.material.navigation.NavigationView;
-
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
-
-    private DrawerLayout drawer;
+public class MainActivity extends Activity {
+    TextView myLabel;
+    EditText myTextbox;
+    BluetoothAdapter mBluetoothAdapter;
+    BluetoothSocket mmSocket;
+    BluetoothDevice mmDevice;
+    OutputStream mmOutputStream;
+    InputStream mmInputStream;
+    Thread workerThread;
+    byte[] readBuffer;
+    int readBufferPosition;
+    int counter;
+    volatile boolean stopWorker;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        Button openButton = (Button) findViewById(R.id.open);
+        Button sendButton = (Button) findViewById(R.id.send);
+        Button closeButton = (Button) findViewById(R.id.close);
+        myLabel = (TextView) findViewById(R.id.label);
+        myTextbox = (EditText) findViewById(R.id.entry);
 
-        drawer = findViewById(R.id.draw_layout);
-        NavigationView navigationView =findViewById(R.id.navigation);
-        navigationView.setNavigationItemSelectedListener(this);
+        //Open Button
+        openButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                try {
+                    findBT();
+                    openBT();
+                } catch (IOException ex) {
+                }
+            }
+        });
 
+        //Send Button
+        sendButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                try {
+                    sendData();
+                } catch (IOException ex) {
+                }
+            }
+        });
 
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar,
-                R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-
-        if(savedInstanceState ==null){
-        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                new MapFragment()).commit();
-        navigationView.setCheckedItem(R.id.nav_map);
-        }
+        //Close button
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                try {
+                    closeBT();
+                } catch (IOException ex) {
+                }
+            }
+        });
     }
 
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()){
-            case R.id.nav_map:
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                        new MapFragment()).commit();
-                break;
-            case R.id.nav_iti:
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                        new ItiFragment()).commit();
-                break;
+    void findBT() {
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mBluetoothAdapter == null) {
+            myLabel.setText("No bluetooth adapter available");
         }
 
-        drawer.closeDrawer(GravityCompat.START);
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBluetooth = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBluetooth, 0);
+        }
 
-        return true;
+        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+        if (pairedDevices.size() > 0) {
+            for (BluetoothDevice device : pairedDevices) {
+                if (device.getName().equals("MattsBlueTooth")) {
+                    mmDevice = device;
+                    break;
+                }
+            }
+        }
+        myLabel.setText("Bluetooth Device Found");
     }
 
-    @Override
-    public void onBackPressed() {
-        if (drawer.isDrawerOpen(GravityCompat.START)){
-            drawer.closeDrawer(GravityCompat.START);
-        }else {
-            super.onBackPressed();
-        }
+    void openBT() throws IOException {
+        UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); //Standard SerialPortService ID
+        mmSocket = mmDevice.createRfcommSocketToServiceRecord(uuid);
+        mmSocket.connect();
+        mmOutputStream = mmSocket.getOutputStream();
+        mmInputStream = mmSocket.getInputStream();
+
+        beginListenForData();
+
+        myLabel.setText("Bluetooth Opened");
+    }
+
+    void beginListenForData() {
+        final Handler handler = new Handler();
+        final byte delimiter = 10; //This is the ASCII code for a newline character
+
+        stopWorker = false;
+        readBufferPosition = 0;
+        readBuffer = new byte[1024];
+        workerThread = new Thread(new Runnable() {
+            public void run() {
+                while (!Thread.currentThread().isInterrupted() && !stopWorker) {
+                    try {
+                        int bytesAvailable = mmInputStream.available();
+                        if (bytesAvailable > 0) {
+                            byte[] packetBytes = new byte[bytesAvailable];
+                            mmInputStream.read(packetBytes);
+                            for (int i = 0; i < bytesAvailable; i++) {
+                                byte b = packetBytes[i];
+                                if (b == delimiter) {
+                                    byte[] encodedBytes = new byte[readBufferPosition];
+                                    System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
+                                    final String data = new String(encodedBytes, "US-ASCII");
+                                    readBufferPosition = 0;
+
+                                    handler.post(new Runnable() {
+                                        public void run() {
+                                            myLabel.setText(data);
+                                        }
+                                    });
+                                } else {
+                                    readBuffer[readBufferPosition++] = b;
+                                }
+                            }
+                        }
+                    } catch (IOException ex) {
+                        stopWorker = true;
+                    }
+                }
+            }
+        });
+
+        workerThread.start();
+    }
+
+    void sendData() throws IOException {
+        String msg = myTextbox.getText().toString();
+        msg += "\n";
+        mmOutputStream.write(msg.getBytes());
+        myLabel.setText("Data Sent");
+    }
+
+    void closeBT() throws IOException {
+        stopWorker = true;
+        mmOutputStream.close();
+        mmInputStream.close();
+        mmSocket.close();
+        myLabel.setText("Bluetooth Closed");
     }
 }
