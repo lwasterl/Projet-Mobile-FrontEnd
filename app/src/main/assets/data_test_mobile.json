@@ -1,0 +1,36 @@
+{
+  "vibrations":[
+    {
+      "valeur": 0.78,
+      "latitude":50.464801,
+      "longitude":4.865810
+    },
+    {
+      "valeur":0.65,
+      "latitude":50.467252,
+      "longitude":4.862486
+    },
+    {
+      "valeur":0.65,
+      "latitude":50.465532,
+      "longitude":4.857657
+    }
+  ],
+  "proximite":[
+    {
+      "valeur":0.50,
+      "latitude":50.463762,
+      "longitude":4.870133
+    },
+    {
+      "valeur":0.50,
+      "latitude":50.462187,
+      "longitude":4.866305
+    },
+    {
+      "valeur":0.50,
+      "latitude":50.465264,
+      "longitude":4.874981
+    }
+  ]
+}
