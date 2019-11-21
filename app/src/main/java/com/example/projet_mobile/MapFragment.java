@@ -55,18 +55,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         if(jsonStr !=null){
             try{
-                Log.d("json String", jsonStr);
                 JSONObject jsonObj =new JSONObject(jsonStr);
-                Log.d("jsonObj", jsonObj.toString());
 
                 JSONArray vibrations = jsonObj.getJSONArray("vibrations");
-                Log.d("jsonArray", vibrations.toString());
                 JSONArray proximite = jsonObj.getJSONArray("proximite");
 
                 for(int i=0;i<vibrations.length(); i++){
                     JSONObject v = vibrations.getJSONObject(i);
                     LatLng coord=new LatLng(v.getDouble("latitude"), v.getDouble("longitude"));
-                    Log.d("coord", coord.toString());
                     marqueur_vibr.add(coord);
 
 
@@ -180,7 +176,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             ex.printStackTrace();
             return null;
         }
-        Log.d("data", json);
         return json;
     }
 
