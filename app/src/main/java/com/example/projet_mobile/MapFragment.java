@@ -36,8 +36,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private static final LatLng Namur = new LatLng(50.4674, 4.8720); //Your LatLong
     private GoogleMap mMap;
     private Button filter;
-    String[] listItems = {"Afficher le traffic"};
-    boolean[] checkedItems = new boolean[]{false};
+    String[] listItems = {"Afficher le traffic", "Afficher les routes endommagées", "Afficher les routes étroites"};
+    boolean[] checkedItems = new boolean[]{false, false, false};
     ArrayList<LatLng> marqueur_vibr =new ArrayList<LatLng>();
     ArrayList<LatLng> marqueur_proxi =new ArrayList<LatLng>();
 
@@ -93,6 +93,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         SupportMapFragment mapFragment = (SupportMapFragment)getChildFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         filter = (Button) view.findViewById(R.id.filter);
+
         filter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -104,6 +105,24 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                         switch (which){
                             case 0:
                                 mMap.setTrafficEnabled(isChecked);
+                                break;
+                            case 1 :
+                                for (int i =0; i<marqueur_vibr.size(); i++){
+                                    MarkerOptions markerOptions =new MarkerOptions();
+                                    markerOptions.position(marqueur_vibr.get(i));
+                                    markerOptions.title("Vibration détectée, route en mauvaise état ! ");
+                                    mMap.addMarker(markerOptions);
+                                }
+
+                                break;
+                            case 2:
+                                for (int i = 0; i < marqueur_proxi.size(); i++) {
+                                    MarkerOptions markerOptions = new MarkerOptions();
+                                    markerOptions.position(marqueur_proxi.get(i));
+                                    markerOptions.title("Route étroite ! ");
+                                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                                    mMap.addMarker(markerOptions);
+                                }
                                 break;
                         }
                         Toast.makeText(getContext(), "Filtre Mis à jour" , Toast.LENGTH_SHORT).show();
@@ -125,6 +144,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         });
 
 
+
         return view;
     }
     /**
@@ -144,21 +164,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mMap.moveCamera(CameraUpdateFactory.newLatLng(Namur));
         mMap.setMinZoomPreference(14.0f);
         mMap.setMaxZoomPreference(29.0f);
-
-        for (int i =0; i<marqueur_vibr.size(); i++){
-            MarkerOptions markerOptions =new MarkerOptions();
-            markerOptions.position(marqueur_vibr.get(i));
-            markerOptions.title("Vibration détectée, route en mauvaise état ! ");
-            mMap.addMarker(markerOptions);
-        }
-        for (int i =0; i<marqueur_proxi.size(); i++){
-            MarkerOptions markerOptions =new MarkerOptions();
-            markerOptions.position(marqueur_proxi.get(i));
-            markerOptions.title("Route étroite ! ");
-            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
-            mMap.addMarker(markerOptions);
-        }
-
 
     }
 
