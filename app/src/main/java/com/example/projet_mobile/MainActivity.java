@@ -17,6 +17,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.os.ParcelUuid;
 import android.os.SystemClock;
 import android.text.LoginFilter;
 import android.util.Log;
@@ -41,13 +42,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private final static int CONNECTING_STATUS = 3; // used in bluetooth handler to identify message status
     private DrawerLayout drawer;
     private String test;
-    private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+    //private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     private BluetoothSocket mBTSocket = null;
     private ConnectedThread mConnectedThread; // bluetooth background worker thread to send and receive data
-    private static final UUID BTMODULEUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); // "random" unique identifier
-
-
-
+    private static final UUID BTMODULEUUID = UUID.fromString("0000110b-0000-1000-8000-00805f9b34fb"); // "random" unique identifier
 
     @Override
 
@@ -75,6 +73,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navigationView.setCheckedItem(R.id.nav_map);
         }
 
+        //Bluetooth
+
+        final BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
         if (bluetoothAdapter == null) {
             // Device does not support Bluetooth
             Toast.makeText(getApplicationContext(),"Bluetooth device not found!",Toast.LENGTH_SHORT).show();
@@ -83,13 +85,62 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
             }else {
+                final String deviceHardwareAddress = "94:B8:6D:C3:8C:6D";
+
+                new Thread() {
+                    public void run() {
+                        boolean fail = false;
+                        BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceHardwareAddress);
+
+                        try {
+                            mBTSocket = createBluetoothSocket(device);
+
+                        } catch (IOException e) {
+                            fail = true;
+                            Log.d("Erreur Bluetooth", "socket creation failed");
+                            Toast.makeText(getBaseContext(), "Socket creation failed", Toast.LENGTH_SHORT).show();
+                        }
+
+                        try {
+                            Class<?> clazz = mBTSocket.getRemoteDevice().getClass();
+                            Class<?>[] paramTypes = new Class<?>[] {Integer.TYPE};
+                            Method m = clazz.getMethod("createRfcommSocket", paramTypes);
+                            Object[] params = new Object[] {Integer.valueOf(1)};
+                            mBTSocket = (BluetoothSocket) m.invoke(mBTSocket.getRemoteDevice(), params);
+                        } catch (Exception e) {
+                            Log.d("Erreur Bluetooth", "Erreur 01");
+                            fail = true;
+                        }
+
+                        // Establish the Bluetooth socket connection.
+                        try {
+                            mBTSocket.connect();
+                        } catch (IOException e) {
+                            Log.d("Erreur Bluetooth", e.getMessage());
+                            try {
+                                fail = true;
+                                mBTSocket.close();
+                                Log.d("close", "bt closed");
+                            } catch (IOException e2) {
+                                Log.d("erreur2 Bluetooth", e2.getMessage());
+                            }
+                        }
+                        if(fail == false) {
+                            mConnectedThread = new ConnectedThread(mBTSocket);
+                            mConnectedThread.start();
+                            Log.d("new thread", "started");
+                        }
+                    }
+                }.start();
+
+                /*
                 bluetoothAdapter.startDiscovery();
 
                 // Register for broadcasts when a device is discovered.
 
                 IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
                 registerReceiver(receiver, filter);
-
+    */
 
             }
         }
@@ -97,7 +148,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
-
+    /*
     // Create a BroadcastReceiver for ACTION_FOUND.
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -108,56 +159,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 if(device.getAddress().equals("94:B8:6D:C3:8C:6D")){
                     String deviceName = device.getName();
-                    final String deviceHardwareAddress = device.getAddress();
 
-                    // Spawn a new thread to avoid blocking the GUI one
-                    new Thread()
-                    {
-                        public void run() {
-                            boolean fail = false;
-                            Log.d("debut", "debut du thread");
-                            BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceHardwareAddress);
-
-                            try {
-                                Log.d("avant", "try");
-
-                                mBTSocket = createBluetoothSocket(device);
-                                Log.d("aprèe", "try");
-
-                            } catch (IOException e) {
-                                fail = true;
-                                Toast.makeText(getBaseContext(), "Socket creation failed", Toast.LENGTH_SHORT).show();
-                            }
-                            // Establish the Bluetooth socket connection.
-                            try {
-                                Log.d("connected ", "try to connect");
-                                mBTSocket.connect();
-                                Log.d("connect", "bt connect");
-                            } catch (IOException e) {
-                                Log.d("erreur", e.getMessage());
-                                try {
-                                    fail = true;
-                                    mBTSocket.close();
-                                    Log.d("close", "bt closed");
-
-                                } catch (IOException e2) {
-                                    //insert code to deal with this
-                                    Toast.makeText(getBaseContext(), "Socket creation failed", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                            if(fail == false) {
-                                Log.d("fail", "Fail ?");
-                                mConnectedThread = new ConnectedThread(mBTSocket);
-                                mConnectedThread.start();
-
-
-                            }
-                        }
-                    }.start();
                 }
             }
         }
-    };
+    };*/
 
     private BluetoothSocket createBluetoothSocket(BluetoothDevice device) throws IOException {
         try {
@@ -194,6 +200,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             super.onBackPressed();
         }
     }
+
 
     private class ConnectedThread extends Thread {
         private final BluetoothSocket mmSocket;
