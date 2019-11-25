@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/about"
+            android:textSize="30dp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:textColor="@android:color/white"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:text="SmartBike, c'est bien plus qu'une simple application ! C'est également un vélo entièrement connecté ainsi qu'une plateforme web ! Retrouvez sur cette application toutes les données récupérées par nos utilisateurs. Découvrez quelles routes de namur sont dangeureuses pour les vélos afin de planifier un itinéraire sans danger."/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="L'équipe"
+            android:textSize="30dp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:gravity="center"/>
+    </LinearLayout>
+
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="200dp"
+        android:id="@+id/scrollView"
+        android:layout_gravity="center_horizontal" >
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <ImageView
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
+                    android:src="@drawable/bobo"
+                    android:scaleType="fitXY" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="Bori Cherry : \n Conception du serveur en scala"
+                    android:textColor="@android:color/white"
+                    android:gravity="center"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:layout_width="200dp"
+                    android:layout_height="match_parent"
+                    android:text="Mathieu Vandenneucker : \n Conception du serveur en scala"
+                    android:gravity="center"
+                    android:textColor="@android:color/white"/>
+
+                <ImageView
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
+                    android:src="@drawable/mathieu"
+                    android:scaleType="fitXY" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <ImageView
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
+                    android:src="@drawable/max"
+                    android:scaleType="fitXY" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textColor="@android:color/white"
+                    android:text="Maxime Dalla Valle : \n Ccnnectique du velo et développement Web"
+                    android:gravity="center"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:layout_width="200dp"
+                    android:layout_height="match_parent"
+                    android:text="Jérome Maquoi : \n Connectique du vélo et développement Android"
+                    android:gravity="center"
+                    android:textColor="@android:color/white"/>
+
+                <ImageView
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
+                    android:src="@drawable/gg"
+                    android:scaleType="fitXY" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <ImageView
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
+                    android:src="@drawable/moi"
+                    android:scaleType="fitXY" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textColor="@android:color/white"
+                    android:text="Ludovic Wasterlain : \n Développement Android"
+                    android:gravity="center"/>
+            </LinearLayout>
+
+
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>

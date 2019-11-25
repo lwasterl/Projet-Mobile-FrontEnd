@@ -3,12 +3,15 @@
     xmlns:tools="http://schemas.android.com/tools"
    >
 
-    <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/nav_map"
-            android:icon="@drawable/ic_map"
-            android:title="@string/map" />
-    </group>
+    <item android:title="Application">
+        <menu>
+            <item
+                android:id="@+id/nav_map"
+                android:icon="@drawable/ic_map"
+                android:title="@string/map" />
+        </menu>
+
+    </item>
 
     <item android:title="@string/communicate">
         <menu>
