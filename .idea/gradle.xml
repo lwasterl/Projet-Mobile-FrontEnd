@@ -8,6 +8,12 @@
         </compositeConfiguration>
         <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="modules">
+          <set>
+            <option value="/media/vandenn3/DATA/Espace de travail/Université/2019-2020/Labo info ambiante et mobile/app_android" />
+            <option value="/media/vandenn3/DATA/Espace de travail/Université/2019-2020/Labo info ambiante et mobile/app_android/app" />
+          </set>
+        </option>
         <option name="resolveModulePerSourceSet" value="false" />
         <option name="testRunner" value="PLATFORM" />
       </GradleProjectSettings>
