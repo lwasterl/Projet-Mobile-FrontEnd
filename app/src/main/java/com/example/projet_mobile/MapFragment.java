@@ -68,6 +68,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
 
             try{
+
                 if(json_vibr !=null){
                 JSONArray vibrations =new JSONArray(json_vibr);
 
@@ -238,6 +239,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         } finally {
             is.close();
         }
+
+
     }
 
 
