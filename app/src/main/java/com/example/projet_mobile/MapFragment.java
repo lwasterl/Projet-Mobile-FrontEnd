@@ -38,9 +38,7 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.security.KeyStore;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
     private static final LatLng Namur = new LatLng(50.4674, 4.8720); //Your LatLong
@@ -52,8 +50,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     ArrayList<LatLng> marqueur_proxi =new ArrayList<LatLng>();
     ArrayList<Marker> marker_vibr=new ArrayList<>();
     ArrayList<Marker> marker_proxi=new ArrayList<>();
-    JSONArray json_vibr;
-    JSONArray json_proxy;
+    String json_vibr;
+    String json_proxy;
 
 
 
@@ -65,30 +63,50 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         //recup donnée marqueur dans json
 
         //TODO Modifier le str pour avoir le string du server web
+        try {
 
-        new GetDataSync().execute();
 
-        String jsonStr = loadJSONFromAsset();
+            Log.d("execute avant", "oui");
+            new GetDataSync().execute();
+            Thread.sleep(1000);
+            Log.d("execute ?", "oui");
 
-        if(jsonStr !=null){
+            String jsonStr = loadJSONFromAsset();
+        }catch (InterruptedException e){
+            e.printStackTrace();
+        }
+
+
             try{
-                JSONObject jsonObj =new JSONObject(jsonStr);
-
-                JSONArray vibrations = jsonObj.getJSONArray("vibrations");
-                JSONArray proximite = jsonObj.getJSONArray("proximite");
-
-                for(int i=0;i<vibrations.length(); i++){
-                    JSONObject v = vibrations.getJSONObject(i);
-                    LatLng coord=new LatLng(v.getDouble("latitude"), v.getDouble("longitude"));
-                    marqueur_vibr.add(coord);
+                if(json_vibr !=null){
+                JSONArray vibrations =new JSONArray(json_vibr);
 
 
+                Log.d("vibr", vibrations.toString());
+
+
+
+
+                    for(int i=0;i<vibrations.length(); i++){
+                        Log.d("hihi", vibrations.toString());
+                        JSONObject v = vibrations.getJSONObject(i);
+                        LatLng coord=new LatLng(v.getDouble("latitude"), v.getDouble("longitude"));
+                        Log.d("coord",coord.toString() );
+                        marqueur_vibr.add(coord);
+
+
+                    }
                 }
-                for(int i=0;i<proximite.length(); i++){
-                    JSONObject v = proximite.getJSONObject(i);
-                    LatLng coord=new LatLng(v.getDouble("latitude"), v.getDouble("longitude"));
-                    marqueur_proxi.add(coord);
+
+                if (json_proxy !=null){
+                    JSONArray proximite = new JSONArray(json_proxy);
+                    for(int i=0;i<proximite.length(); i++){
+                        JSONObject v = proximite.getJSONObject(i);
+                        LatLng coord=new LatLng(v.getDouble("latitude"), v.getDouble("longitude"));
+                        marqueur_proxi.add(coord);
+                    }
                 }
+
 
 
 
@@ -97,7 +115,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 e.printStackTrace();
 
             }
-        }
 
 
 
@@ -242,8 +259,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private void getData() throws IOException, JSONException {
         JSONArray json = readJsonFromUrl("http://vps750070.ovh.net:8080/vibrate/all");
         JSONArray json2 = readJsonFromUrl("http://vps750070.ovh.net:8080/car/all");
-        json_vibr=json;
-        json_proxy=json2;
+        Log.d("reponse", json.toString());
+        json_vibr=json.toString();
+        Log.d("Var", json_vibr.toString());
+        json_proxy=json2.toString();
     }
 
     private String readAll(Reader rd) throws IOException {
