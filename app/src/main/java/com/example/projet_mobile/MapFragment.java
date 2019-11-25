@@ -2,6 +2,7 @@ package com.example.projet_mobile;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -27,8 +29,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,6 +52,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     ArrayList<LatLng> marqueur_proxi =new ArrayList<LatLng>();
     ArrayList<Marker> marker_vibr=new ArrayList<>();
     ArrayList<Marker> marker_proxi=new ArrayList<>();
+    JSONArray json_vibr;
+    JSONArray json_proxy;
 
 
 
@@ -54,22 +65,21 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         //recup donnée marqueur dans json
 
         //TODO Modifier le str pour avoir le string du server web
+
+        new GetDataSync().execute();
+
         String jsonStr = loadJSONFromAsset();
 
         if(jsonStr !=null){
             try{
-                Log.d("json String", jsonStr);
                 JSONObject jsonObj =new JSONObject(jsonStr);
-                Log.d("jsonObj", jsonObj.toString());
 
                 JSONArray vibrations = jsonObj.getJSONArray("vibrations");
-                Log.d("jsonArray", vibrations.toString());
                 JSONArray proximite = jsonObj.getJSONArray("proximite");
 
                 for(int i=0;i<vibrations.length(); i++){
                     JSONObject v = vibrations.getJSONObject(i);
                     LatLng coord=new LatLng(v.getDouble("latitude"), v.getDouble("longitude"));
-                    Log.d("coord", coord.toString());
                     marqueur_vibr.add(coord);
 
 
@@ -187,6 +197,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     }
 
+
+
+
     public String loadJSONFromAsset() {
         String json = null;
         try {
@@ -200,9 +213,60 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             ex.printStackTrace();
             return null;
         }
-        Log.d("data", json);
         return json;
     }
+
+    String saldo = "";
+
+    public class GetDataSync extends AsyncTask<Void, Void, Void> {
+
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                getData();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
+    }
+
+    private void getData() throws IOException, JSONException {
+        JSONArray json = readJsonFromUrl("http://vps750070.ovh.net:8080/vibrate/all");
+        JSONArray json2 = readJsonFromUrl("http://vps750070.ovh.net:8080/car/all");
+        json_vibr=json;
+        json_proxy=json2;
+    }
+
+    private String readAll(Reader rd) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        int cp;
+        while ((cp = rd.read()) != -1) {
+            sb.append((char) cp);
+        }
+        return sb.toString();
+    }
+
+    public JSONArray readJsonFromUrl(String url) throws IOException, JSONException {
+        InputStream is = new URL(url).openStream();
+        try {
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+            String jsonText = readAll(rd);
+            JSONArray json = new JSONArray(jsonText);
+            return json;
+        } finally {
+            is.close();
+        }
+    }
+
 
 }
 
