@@ -224,9 +224,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         public void run() {
-            byte[] buffer = new byte[1024];  // buffer store for the stream
+            byte[] buffer;  // buffer store for the stream
             int bytes; // bytes returned from read()
             // Keep listening to the InputStream until an exception occurs
+            Log.d("reading...", "oui");
             while (true) {
                 try {
                     // Read from the InputStream
@@ -236,6 +237,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         SystemClock.sleep(100); //pause and wait for rest of data. Adjust this depending on your sending speed.
                         bytes = mmInStream.available(); // how many bytes are ready to be read?
                         bytes = mmInStream.read(buffer, 0, bytes); // record how many bytes we actually read
+                        int i;
+                        for (i = 0; i < buffer.length && buffer[i] != 0; i++);
+
+                        String received_message = new String(buffer, 0, i);
+
+                        Log.d("Received message from raspberry", received_message);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
