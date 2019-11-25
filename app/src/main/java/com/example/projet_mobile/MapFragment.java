@@ -20,6 +20,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
@@ -40,6 +41,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     boolean[] checkedItems = new boolean[]{false, false, false};
     ArrayList<LatLng> marqueur_vibr =new ArrayList<LatLng>();
     ArrayList<LatLng> marqueur_proxi =new ArrayList<LatLng>();
+    ArrayList<Marker> marker_vibr=new ArrayList<>();
+    ArrayList<Marker> marker_proxi=new ArrayList<>();
 
 
 
@@ -107,22 +110,39 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                                 mMap.setTrafficEnabled(isChecked);
                                 break;
                             case 1 :
-                                for (int i =0; i<marqueur_vibr.size(); i++){
-                                    MarkerOptions markerOptions =new MarkerOptions();
-                                    markerOptions.position(marqueur_vibr.get(i));
-                                    markerOptions.title("Vibration détectée, route en mauvaise état ! ");
-                                    mMap.addMarker(markerOptions);
-                                }
+                                if (checkedItems[1] == true) {
+                                    for (int i =0; i<marqueur_vibr.size(); i++){
+                                        MarkerOptions markerOptions =new MarkerOptions();
+                                        markerOptions.position(marqueur_vibr.get(i));
+                                        markerOptions.title("Vibration détectée, route en mauvaise état ! ");
+                                        Marker tmpMrk = mMap.addMarker(markerOptions);
+                                        marker_vibr.add(tmpMrk);
+                                    }
 
+                                }else{
+                                    for(int i=0;i<marker_vibr.size();i++){
+                                        marker_vibr.get(i).remove();
+                                    }
+
+                                }
                                 break;
                             case 2:
-                                for (int i = 0; i < marqueur_proxi.size(); i++) {
-                                    MarkerOptions markerOptions = new MarkerOptions();
-                                    markerOptions.position(marqueur_proxi.get(i));
-                                    markerOptions.title("Route étroite ! ");
-                                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
-                                    mMap.addMarker(markerOptions);
+                                if(checkedItems[2]==true){
+                                    for (int i = 0; i < marqueur_proxi.size(); i++) {
+                                        MarkerOptions markerOptions = new MarkerOptions();
+                                        markerOptions.position(marqueur_proxi.get(i));
+                                        markerOptions.title("Route étroite ! ");
+                                        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                                        Marker tmpMrk = mMap.addMarker(markerOptions);
+                                        marker_proxi.add(tmpMrk);
+                                    }
+
+                                }else{
+                                    for(int i=0;i<marker_proxi.size();i++){
+                                        marker_proxi.get(i).remove();
+                                    }
                                 }
+
                                 break;
                         }
                         Toast.makeText(getContext(), "Filtre Mis à jour" , Toast.LENGTH_SHORT).show();
