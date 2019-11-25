@@ -13,7 +13,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresPermission;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -29,13 +28,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -60,18 +57,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-        //recup donnée marqueur dans json
-
-        //TODO Modifier le str pour avoir le string du server web
         try {
 
-
-            Log.d("execute avant", "oui");
             new GetDataSync().execute();
             Thread.sleep(1000);
-            Log.d("execute ?", "oui");
 
-            String jsonStr = loadJSONFromAsset();
         }catch (InterruptedException e){
             e.printStackTrace();
         }
@@ -81,17 +71,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 if(json_vibr !=null){
                 JSONArray vibrations =new JSONArray(json_vibr);
 
-
-                Log.d("vibr", vibrations.toString());
-
-
-
-
                     for(int i=0;i<vibrations.length(); i++){
-                        Log.d("hihi", vibrations.toString());
+
                         JSONObject v = vibrations.getJSONObject(i);
                         LatLng coord=new LatLng(v.getDouble("latitude"), v.getDouble("longitude"));
-                        Log.d("coord",coord.toString() );
                         marqueur_vibr.add(coord);
 
 
@@ -108,15 +91,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 }
 
 
-
-
-
             }catch(JSONException e){
                 e.printStackTrace();
 
             }
-
-
 
 
         View view = inflater.inflate(R.layout.fragment_map, container, false);
@@ -214,29 +192,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     }
 
-
-
-
-    public String loadJSONFromAsset() {
-        String json = null;
-        try {
-            InputStream is = getActivity().getAssets().open("data_test.json");
-            int size = is.available();
-            byte[] buffer = new byte[size];
-            is.read(buffer);
-            is.close();
-            json = new String(buffer, "UTF-8");
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            return null;
-        }
-        return json;
-    }
-
-    String saldo = "";
-
     public class GetDataSync extends AsyncTask<Void, Void, Void> {
-
 
         @Override
         protected Void doInBackground(Void... params) {
@@ -259,9 +215,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private void getData() throws IOException, JSONException {
         JSONArray json = readJsonFromUrl("http://vps750070.ovh.net:8080/vibrate/all");
         JSONArray json2 = readJsonFromUrl("http://vps750070.ovh.net:8080/car/all");
-        Log.d("reponse", json.toString());
         json_vibr=json.toString();
-        Log.d("Var", json_vibr.toString());
         json_proxy=json2.toString();
     }
 
