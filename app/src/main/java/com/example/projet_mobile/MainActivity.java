@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
             }else {
-                final String deviceHardwareAddress = "94:B8:6D:C3:8C:6D";
+                final String deviceHardwareAddress = "B8:27:EB:99:47:2F";
 
                 new Thread() {
                     public void run() {
@@ -185,6 +185,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
                         new AboutFragment()).commit();
                 break;
+
+
+            case R.id.contact:
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
+                        new ComFragment()).commit();
+
         }
 
         drawer.closeDrawer(GravityCompat.START);
