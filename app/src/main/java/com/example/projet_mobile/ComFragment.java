@@ -62,7 +62,7 @@ public class ComFragment extends Fragment {
     FusedLocationProviderClient mFusedLocationClient;
     // define url
     public static String URL = "<YOUR_API_LINK>";
-    TextView latTextView, lonTextView;
+    public TextView latTextView, lonTextView;
     Button bt;
     @Nullable
     @Override
@@ -93,7 +93,7 @@ public class ComFragment extends Fragment {
             @Override
             public void run() {
                 try {
-                    URL url = new URL("http://vps750070.ovh.net:8080/car/insert");
+                    URL url = new URL("http://vps750070.ovh.net:8080/vibrate/insert");
                     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("POST");
                     conn.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
