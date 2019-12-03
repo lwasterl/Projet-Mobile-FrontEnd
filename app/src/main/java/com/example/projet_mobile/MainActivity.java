@@ -128,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                         try {
                             mBTSocket = createBluetoothSocket(device);
+                            Toast.makeText(getApplicationContext(), "Connected", Toast.LENGTH_LONG);
 
                         } catch (IOException e) {
                             fail = true;
@@ -403,7 +404,7 @@ i
                         }
                 );
             } else {
-                Toast.makeText(this, "Turn on location", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "Turn on location", Toast.LENGTH_LONG).show();
                 Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                 startActivity(intent);
             }
