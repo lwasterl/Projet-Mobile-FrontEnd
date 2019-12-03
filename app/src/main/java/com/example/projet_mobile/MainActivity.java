@@ -4,9 +4,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -14,25 +17,44 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.ParcelUuid;
 import android.os.SystemClock;
+import android.provider.Settings;
 import android.text.LoginFilter;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
 
+import org.json.JSONObject;
+
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.HashMap;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -47,6 +69,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private ConnectedThread mConnectedThread; // bluetooth background worker thread to send and receive data
     private static final UUID BTMODULEUUID = UUID.fromString("0000110b-0000-1000-8000-00805f9b34fb"); // "random" unique identifier
 
+    int PERMISSION_ID = 44;
+    HashMap<String, String> params;
+    FusedLocationProviderClient mFusedLocationClient;
+    String latTextView, lonTextView;
+
     @Override
 
 
@@ -60,6 +87,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawer = findViewById(R.id.draw_layout);
         NavigationView navigationView =findViewById(R.id.navigation);
         navigationView.setNavigationItemSelectedListener(this);
+
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(MainActivity.this);
+
+
+        Log.d("avant", "avant");
+        getLastLocation();
+        Log.d("apres", "apres");
 
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar,
@@ -94,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                         try {
                             mBTSocket = createBluetoothSocket(device);
+                            Toast.makeText(getApplicationContext(), "Connected", Toast.LENGTH_LONG);
 
                         } catch (IOException e) {
                             fail = true;
@@ -135,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 /*
                 bluetoothAdapter.startDiscovery();
-
+i
                 // Register for broadcasts when a device is discovered.
 
                 IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
@@ -248,6 +283,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                         String received_message = new String(buffer, 0, i);
 
+                        if(received_message.equals("VOITURE")){
+                            sendPostVoiture();
+                        }else if(received_message.equals("VIBRATION")){
+                            sendPostProximite();
+                        }
+
                         Log.d("Received message from raspberry", received_message);
                     }
                 } catch (IOException e) {
@@ -258,6 +299,187 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
 
+
+    }
+
+
+    public void sendPostVoiture() {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    URL url = new URL("http://vps750070.ovh.net:8080/car/insert");
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("POST");
+                    conn.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
+                    conn.setRequestProperty("Accept","application/json");
+                    conn.setDoOutput(true);
+                    conn.setDoInput(true);
+
+                    JSONObject jsonParam = new JSONObject();
+                    jsonParam.put("latitude", latTextView);
+                    jsonParam.put("longitude", lonTextView);
+                    Log.d("JSON", jsonParam.toString());
+                    DataOutputStream os = new DataOutputStream(conn.getOutputStream());
+                    //os.writeBytes(URLEncoder.encode(jsonParam.toString(), "UTF-8"));
+                    os.writeBytes(jsonParam.toString());
+
+                    os.flush();
+                    os.close();
+
+                    Log.i("STATUS", String.valueOf(conn.getResponseCode()));
+                    Log.i("MSG" , conn.getResponseMessage());
+
+                    conn.disconnect();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        thread.start();
+    }
+
+
+    public void sendPostProximite() {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    URL url = new URL("http://vps750070.ovh.net:8080/vibrate/insert");
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("POST");
+                    conn.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
+                    conn.setRequestProperty("Accept","application/json");
+                    conn.setDoOutput(true);
+                    conn.setDoInput(true);
+
+                    JSONObject jsonParam = new JSONObject();
+                    jsonParam.put("latitude", latTextView);
+                    jsonParam.put("longitude", lonTextView);
+                    Log.d("JSON", jsonParam.toString());
+                    DataOutputStream os = new DataOutputStream(conn.getOutputStream());
+                    //os.writeBytes(URLEncoder.encode(jsonParam.toString(), "UTF-8"));
+                    os.writeBytes(jsonParam.toString());
+
+                    os.flush();
+                    os.close();
+
+                    Log.i("STATUS", String.valueOf(conn.getResponseCode()));
+                    Log.i("MSG" , conn.getResponseMessage());
+
+                    conn.disconnect();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        thread.start();
+    }
+
+
+    @SuppressLint("MissingPermission")
+    private void getLastLocation(){
+        Log.d("1", "coucou");
+        if (checkPermissions()) {
+            Log.d("2", "coucou");
+            if (isLocationEnabled()) {
+                Log.d("3", "coucou");
+                mFusedLocationClient.getLastLocation().addOnCompleteListener(
+                        new OnCompleteListener<Location>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Location> task) {
+                                Location location = task.getResult();
+                                if (location == null) {
+                                    Log.d("4", "coucou");
+                                    requestNewLocationData();
+                                } else {
+                                    Log.d("5", "coucou");
+                                    latTextView = location.getLatitude()+"";
+                                    lonTextView = location.getLongitude()+"";
+                                    Log.d("7", latTextView);
+                                }
+                            }
+                        }
+                );
+            } else {
+                Toast.makeText(getApplicationContext(), "Turn on location", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                startActivity(intent);
+            }
+        } else {
+            requestPermissions();
+        }
+    }
+
+
+    @SuppressLint("MissingPermission")
+    private void requestNewLocationData(){
+
+        LocationRequest mLocationRequest = new LocationRequest();
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setInterval(0);
+        mLocationRequest.setFastestInterval(0);
+        mLocationRequest.setNumUpdates(1);
+
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        mFusedLocationClient.requestLocationUpdates(
+                mLocationRequest, mLocationCallback,
+                Looper.myLooper()
+        );
+
+    }
+
+    private LocationCallback mLocationCallback = new LocationCallback() {
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            Location mLastLocation = locationResult.getLastLocation();
+            Log.d("6", "coucou");
+            latTextView = mLastLocation.getLatitude()+"";
+            lonTextView = mLastLocation.getLongitude()+"";
+        }
+    };
+
+    private boolean checkPermissions() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            return true;
+        }
+        return false;
+    }
+
+    private void requestPermissions() {
+        ActivityCompat.requestPermissions(
+                this,
+                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
+                PERMISSION_ID
+        );
+    }
+
+    private boolean isLocationEnabled() {
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(
+                LocationManager.NETWORK_PROVIDER
+        );
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_ID) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                getLastLocation();
+            }
+        }
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        if (checkPermissions()) {
+            getLastLocation();
+        }
 
     }
 }
