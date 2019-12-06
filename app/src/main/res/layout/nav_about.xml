@@ -99,7 +99,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:textColor="@android:color/white"
-                    android:text="Maxime Dalla Valle : \n Ccnnectique du velo et développement Web"
+                    android:text="Maxime Dalla Valle : \n Connectique du velo et développement Web"
                     android:gravity="center"/>
             </LinearLayout>
 
