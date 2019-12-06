@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
         Log.d("avant", "avant");
-        getLastLocation();
+        getLastLocation("");
         Log.d("apres", "apres");
 
 
@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                         try {
                             mBTSocket = createBluetoothSocket(device);
-                            Toast.makeText(getApplicationContext(), "Connected", Toast.LENGTH_LONG);
+
 
                         } catch (IOException e) {
                             fail = true;
@@ -283,11 +283,7 @@ i
 
                         String received_message = new String(buffer, 0, i);
 
-                        if(received_message.equals("VOITURE")){
-                            sendPostVoiture();
-                        }else if(received_message.equals("VIBRATION")){
-                            sendPostProximite();
-                        }
+                        getLastLocation(received_message);
 
                         Log.d("Received message from raspberry", received_message);
                     }
@@ -380,7 +376,7 @@ i
 
 
     @SuppressLint("MissingPermission")
-    private void getLastLocation(){
+    private void getLastLocation(final String received_message){
         Log.d("1", "coucou");
         if (checkPermissions()) {
             Log.d("2", "coucou");
@@ -391,15 +387,7 @@ i
                             @Override
                             public void onComplete(@NonNull Task<Location> task) {
                                 Location location = task.getResult();
-                                if (location == null) {
-                                    Log.d("4", "coucou");
-                                    requestNewLocationData();
-                                } else {
-                                    Log.d("5", "coucou");
-                                    latTextView = location.getLatitude()+"";
-                                    lonTextView = location.getLongitude()+"";
-                                    Log.d("7", latTextView);
-                                }
+                                requestNewLocationData(received_message);
                             }
                         }
                 );
@@ -415,7 +403,7 @@ i
 
 
     @SuppressLint("MissingPermission")
-    private void requestNewLocationData(){
+    private void requestNewLocationData(String received_message){
 
         LocationRequest mLocationRequest = new LocationRequest();
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -424,10 +412,20 @@ i
         mLocationRequest.setNumUpdates(1);
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        mFusedLocationClient.requestLocationUpdates(
-                mLocationRequest, mLocationCallback,
-                Looper.myLooper()
-        );
+
+        if(received_message.equals("VOITURE")){
+            mFusedLocationClient.requestLocationUpdates(
+                    mLocationRequest, mLocationCallback,
+                    Looper.myLooper()
+            );
+
+        }else if(received_message.equals("VIBRATION")){
+            mFusedLocationClient.requestLocationUpdates(
+                    mLocationRequest, mLocationCallback2,
+                    Looper.myLooper()
+            );
+        }
+
 
     }
 
@@ -438,6 +436,18 @@ i
             Log.d("6", "coucou");
             latTextView = mLastLocation.getLatitude()+"";
             lonTextView = mLastLocation.getLongitude()+"";
+            sendPostVoiture();
+        }
+    };
+
+    private LocationCallback mLocationCallback2 = new LocationCallback() {
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            Location mLastLocation = locationResult.getLastLocation();
+            Log.d("6", "coucou");
+            latTextView = mLastLocation.getLatitude()+"";
+            lonTextView = mLastLocation.getLongitude()+"";
+            sendPostProximite();
         }
     };
 
@@ -469,7 +479,7 @@ i
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_ID) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                getLastLocation();
+                getLastLocation("");
             }
         }
     }
@@ -478,7 +488,7 @@ i
     public void onResume(){
         super.onResume();
         if (checkPermissions()) {
-            getLastLocation();
+            getLastLocation("");
         }
 
     }
