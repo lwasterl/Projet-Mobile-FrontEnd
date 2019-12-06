@@ -61,7 +61,7 @@ public class ComFragment extends Fragment {
         bt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                sendPost();
+                getLastLocation();
             }
         });
 
@@ -115,12 +115,8 @@ public class ComFragment extends Fragment {
                             @Override
                             public void onComplete(@NonNull Task<Location> task) {
                                 Location location = task.getResult();
-                                if (location == null) {
-                                    requestNewLocationData();
-                                } else {
-                                    latTextView.setText(location.getLatitude()+"");
-                                    lonTextView.setText(location.getLongitude()+"");
-                                }
+
+                                requestNewLocationData();
                             }
                         }
                 );
@@ -158,6 +154,7 @@ public class ComFragment extends Fragment {
             Location mLastLocation = locationResult.getLastLocation();
             latTextView.setText(mLastLocation.getLatitude()+"");
             lonTextView.setText(mLastLocation.getLongitude()+"");
+            Log.d("maj", "des coordonnées");
         }
     };
 
